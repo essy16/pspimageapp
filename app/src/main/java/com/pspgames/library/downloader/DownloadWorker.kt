@@ -35,11 +35,13 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 class DownloadWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
+
     private val downloadTable: DownloadTable = DownloadTable.getRepo(context)
     private val downloadServices: DownloadServices = DownloadClient.createService()
+    private val progress = 0
+
 
     companion object {
         const val DOWNLOAD_ID = "DOWNLOAD_ID"
@@ -54,6 +56,7 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         private val canceling = AtomicBoolean(false)
         private val paused = AtomicBoolean(false)
         private var currentDownloadPosition = 0L
+        private var resumePosition = 0L
 
         private fun isRunning() = running.get()
         private fun isCanceling() = canceling.get()
@@ -105,34 +108,55 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         fun pause() {
             paused.set(true)
             modelDownload.status = DownloadStatus.PAUSED.name
-//        updateTable(modelDownload)
             downloadListener?.onPause(modelDownload)
         }
 
         fun resume(context: Context, observer: Observer<List<WorkInfo?>?>) {
             if (modelDownload.downloaded > 0) {
-                currentDownloadPosition = modelDownload.downloaded
+                resumePosition = modelDownload.downloaded
             }
             paused.set(false)
             modelDownload.status = DownloadStatus.DOWNLOADING.name
             downloadListener?.onResume(modelDownload)
+            val resumePosition = modelDownload.downloaded
 
-            // Cancel existing work
-            WorkManager.getInstance(context).cancelUniqueWork(Constants.workerName)
+            // Create new work request with resume data
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
 
-            // Wait briefly for cancellation to complete
-            Handler(Looper.getMainLooper()).postDelayed({
-                if (!isRunning()) {
-                    start(context, observer)
-                }
-            }, 100)
+            val inputData = Data.Builder()
+                .putLong("resume_position", resumePosition)
+                .build()
+
+            val downloadRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java)
+                .setConstraints(constraints)
+                .setInputData(inputData)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                Constants.workerName,
+                ExistingWorkPolicy.REPLACE,
+                downloadRequest
+            )
+
+            addObserver(context, observer)
         }
     }
 
-
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         return@withContext try {
-            setForegroundAsync(createForegroundInfo("Downloading..."))
+            // Get resume position from input data
+            val resumePosition = inputData.getLong("resume_position", 0L)
+            currentDownloadPosition = resumePosition
+
+// Make sure the notification is being updated correctly in the download loop.
+            setForegroundAsync(createForegroundInfo("Downloading: $progress%"))
+
+            // Ensure we're using a foreground service
+            val foregroundInfo = createForegroundInfo("Starting download...")
+            setForeground(foregroundInfo)
+
             performWork()
             running.set(false)
             Result.success()
@@ -150,25 +174,29 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create notification channel (for Android 8.0+)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 channelName,
-                android.app.NotificationManager.IMPORTANCE_LOW
-            )
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Build the notification
-        val notification: Notification = NotificationCompat.Builder(applicationContext, channelId)
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle("Downloading")
             .setContentText(progress)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .setProgress(100, 0, true)
+            .setSilent(true)
             .build()
 
-        // Return ForegroundInfo with appropriate type for Android 14+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ForegroundInfo(
                 1,
@@ -179,7 +207,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             ForegroundInfo(1, notification)
         }
     }
-
 
     private suspend fun performWork() {
         while (getPendingDownloads().isNotEmpty()) {
@@ -199,13 +226,14 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
 
     private suspend fun downloadFile() {
         running.set(true)
-        val destinationFile = withContext(Dispatchers.Main) {
+        val destinationFile = withContext(Dispatchers.IO) {
             createDir(modelDownload)
             createFile(modelDownload)
         }
 
         try {
             val response = if (currentDownloadPosition > 0) {
+                // Add proper headers for range request
                 downloadServices.downloadFileWithRange(
                     modelDownload.url,
                     "bytes=$currentDownloadPosition-"
@@ -216,39 +244,48 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
 
             response.run {
                 byteStream().use { inputStream ->
-                    // Use FileOutputStream in APPEND mode when resuming
-                    val fileOutputStream = if (currentDownloadPosition > 0) {
-                        FileOutputStream(destinationFile, true)  // true for append mode
-                    } else {
-                        FileOutputStream(destinationFile)
-                    }
-
-                    fileOutputStream.use { outputStream ->
+                    FileOutputStream(destinationFile, currentDownloadPosition > 0).use { outputStream ->
                         val total = contentLength() + currentDownloadPosition
                         var downloaded = currentDownloadPosition
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                         var bytes = inputStream.read(buffer)
 
+                        // Define the progress here
+                        var progress: Int
+
                         while (bytes >= 0 && running.get()) {
                             if (paused.get()) {
+                                // Pause condition
                                 updateProgress(
                                     DownloadStatus.PAUSED,
                                     ((downloaded * 100) / total).toInt(),
-                                    downloaded, total
+                                    downloaded,
+                                    total
                                 )
                                 currentDownloadPosition = downloaded
                                 return
                             }
 
-                            outputStream.write(buffer, 0, bytes)
+                            withContext(Dispatchers.IO) {
+                                outputStream.write(buffer, 0, bytes)
+                                outputStream.flush()
+                            }
+
                             downloaded += bytes
                             bytes = inputStream.read(buffer)
-                            val progress = ((downloaded * 100) / total).toInt()
+
+                            // Update progress during the download
+                            progress = ((downloaded * 100) / total).toInt()
                             updateProgress(DownloadStatus.DOWNLOADING, progress, downloaded, total)
+
+                            // Update notification periodically
+                            setForegroundAsync(createForegroundInfo("Downloaded: $progress%"))
                         }
 
                         if (!paused.get() && running.get()) {
+                            // Download completed
                             currentDownloadPosition = 0L
+                            resumePosition = 0L
                             updateProgress(DownloadStatus.COMPLETED, 100, downloaded, total)
                         }
                     }
@@ -278,7 +315,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         setProgress(data)
     }
 
-
     private fun createOutputData(
         status: DownloadStatus,
         progress: Int = 0,
@@ -307,35 +343,11 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         }
     }
 
-//    private fun createFile(modelDownload: ModelDownload): File {
-//        val destinationFile = File(modelDownload.directory, modelDownload.filename)
-//        if (!destinationFile.exists()) {
-//            destinationFile.createNewFile()
-//        }
-//        return destinationFile
-//    }
-
     private fun getPendingDownload() = downloadTable.getPendingDownload()
     private fun getPendingDownloads() = downloadTable.getPendingDownloads()
     fun updateTable(download: ModelDownload) = downloadTable.update(download)
 
-    private fun showFeedback(message: String) {
-        //NotificationUtils.sendStatusNotification(message = message, context = applicationContext, Timestamp(Date().time).nanos)
-    }
-
-
-    private fun updateDownloadSuccess(modelDownload: ModelDownload) {
-        //val message = modelDownload.filename + " - download success"
-        //showFeedback(message)
-    }
-
     private fun logi(message: Any) {
         Log.e("ABENK : ", message.toString())
     }
-
-    private fun isSuccessful(responseCode: Int): Boolean {
-        return (responseCode >= HttpURLConnection.HTTP_OK
-                && responseCode < HttpURLConnection.HTTP_MULT_CHOICE)
-    }
-
 }
