@@ -1,0 +1,9 @@
+<resources>
+    <declare-styleable name="Theme">
+        <attr name="background_primary" format="color"/>
+        <attr name="background_secondary" format="color"/>
+        <attr name="text_primary" format="color"/>
+        <attr name="text_secondary" format="color"/>
+        <attr name="accent_color" format="color"/>
+    </declare-styleable>
+</resources>

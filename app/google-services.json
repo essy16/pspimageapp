@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "158133930070",
+    "project_id": "psp-games-library-1c92b",
+    "storage_bucket": "psp-games-library-1c92b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:158133930070:android:837ef79fc2bc6a3c2f13f7",
+        "android_client_info": {
+          "package_name": "com.pspgames.library"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP74W0Yv0AOsq4O5CBcHqQNzW9nHyOsWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

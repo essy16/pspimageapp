@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="30dp"
+    android:layout_gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="10dp"
+        app:cardBackgroundColor="?attr/background_primary"
+        app:cardElevation="0dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/dialogTitle"
+                android:text="Say Good By Friend"
+                android:fontFamily="@font/medium"
+                android:textSize="16sp"
+                android:textColor="?attr/text_primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/dialogDescription"
+                android:text="Are you sure you want to close this application ?"
+                android:textAlignment="center"
+                android:fontFamily="@font/regular"
+                android:textColor="?attr/text_secondary"
+                android:textSize="15sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button
+                    android:visibility="gone"
+                    android:id="@+id/dialogButtonNegative"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="5dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_button"
+                    android:textColor="@android:color/white"
+                    android:text="Yes, im sure"
+                    tools:ignore="ButtonStyle" />
+                <Button
+                    android:visibility="gone"
+                    android:id="@+id/dialogButtonPositive"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="5dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_button"
+                    android:textColor="@android:color/white"
+                    android:text="Maybe, No"
+                    tools:ignore="ButtonStyle" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>

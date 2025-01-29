@@ -1,0 +1,189 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">PSP Games Library</string>
+    <string name="app_name_description" translatable="false">Huge Collection of PSP Games </string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-9495037008898481~9445469893</string>
+    <string name="applovin_sdk_key" translatable="false">T3vkSf0ieOZMmaF5WKOL7bUue4Atpouwu-MTPkImRrt12Jx3SW44Fu2KU_Jvx_Kc1W-0giKWcadGWxI9dSi_zR</string>
+
+    <!--    dashboard version 2-->
+    <string name="tab_latest2">Latest</string>
+    <string name="tab_popular2">Popular</string>
+    <string name="tab_most_download2">Most Download</string>
+    <string name="tab_premium2">Modded</string>
+    <string name="tab_free2">Classic</string>
+    <string name="tab_random2">Random</string>
+    <string name="tab_live2">English Patched</string>
+    <string name="tab_double">Double</string>
+    <string name="tab_color">Colors</string>
+    <string name="tab_download">Download</string>
+    <!--    tab-->
+    <string name="tab_latest">Latest</string>
+    <string name="tab_popular">Popular</string>
+    <string name="tab_most_download">Most Download</string>
+    <string name="tab_categories">Categories</string>
+    <string name="tab_premium">Premium</string>
+    <string name="tab_free">Free</string>
+    <string name="tab_random">Random</string>
+    <string name="tab_live">Live</string>
+    <string name="tab_favourite">Favourite</string>
+    <string name="tab_collection">Collection</string>
+    <!--    dialog set wallpaper-->
+    <string name="dialog_set_title">Set wallpaper as : </string>
+    <string name="dialog_set_home">Home Screen</string>
+    <string name="dialog_set_lock">Lock Screen</string>
+    <string name="dialog_set_both">Both Screen</string>
+
+    <!--    dialog rename-->
+    <string name="rename_file_to">Rename file to : </string>
+
+
+    <!--    dialog reward-->
+    <string name="dialog_reward_title">I am so sorry</string>
+    <string name="dialog_reward_description">Please play an ads to use this Feature</string>
+    <string name="dialog_reward_button1">Play Ads</string>
+    <string name="dialog_reward_button2">Maybe No</string>
+
+    <!--    dialog clear-->
+    <string name="dialog_clear_title">Clear Cache</string>
+    <string name="dialog_clear_description">Clearing image cache from your storage</string>
+    <string name="dialog_clear_button1">Clear</string>
+    <string name="dialog_clear_button2">Cancel</string>
+
+    <!--    dialog delete-->
+    <string name="dialog_delete_title">Delete File</string>
+    <string name="dialog_delete_description">Are you sure want to delete this?</string>
+    <string name="dialog_delete_button1">Delete</string>
+    <string name="dialog_delete_button2">Cancel</string>
+
+    <!--    dialog download-->
+    <string name="dialog_download_title">Download</string>
+    <string name="dialog_download_description">Select what type you want to download</string>
+    <string name="dialog_download_button1">IMAGE</string>
+    <string name="dialog_download_button3">VIDEO</string>
+    <string name="dialog_download_button2">ZIP</string>
+    <string name="dialog_download_button4">GAME ISO</string>
+    <!--    dialog exist-->
+    <string name="dialog_exist_title">Warning</string>
+    <string name="dialog_exist_description">File already downloaded, you want re download?</string>
+    <string name="dialog_exist_button1">Cancel</string>
+    <string name="dialog_exist_button2">ReDownload</string>
+
+    <!--    dialog theme-->
+    <string name="dialog_theme_title">Restart Needed</string>
+    <string name="dialog_theme_description">restart app to take change</string>
+    <string name="dialog_theme_button1">Restart</string>
+    <string name="dialog_theme_button2">Cancel</string>
+
+    <!--    other-->
+    <string name="type_video">VIDEO</string>
+    <string name="type_gif">GIF</string>
+    <string name="type_double">DOUBLE</string>
+    <string name="must_uncheck_auto_wallpaper">Uncheck auto wallpaper before changing</string>
+    <string name="auto_wallpaper_error">You must add some image for using auto wallpaper</string>
+
+    <string name="wallpaper_set_success">Wallpaper set success</string>
+    <string name="wallpaper_set_failed">Wallpaper set failed</string>
+    <string name="aspect_ratio_lock">Aspect ratio locked</string>
+    <string name="aspect_ratio_unlocked">Aspect ration unlocked</string>
+    <string name="something_error">Something error, please try again later</string>
+    <string name="download_success">Download success</string>
+    <string name="download_failed">Download failed, please try again later</string>
+    <string name="download_already">File already downloaded</string>
+    <string name="remove_success">Removing Success</string>
+    <string name="remove_failed">Removing failed, please try again later</string>
+    <string name="download_cancel">Download canceled</string>
+    <string name="cancel_download">CANCEL DOWNLOAD</string>
+    <string name="favourite_added">Added to favourite</string>
+    <string name="favourite_remove">Remove from favourite</string>
+    <string name="collection_added">Added to collection</string>
+    <string name="collection_remove">Remove from collection</string>
+    <string name="collection_error">Auto wallpaper only support image</string>
+    <string name="no_favourite">No Favourite Found</string>
+    <string name="no_favourite_description">swipe to refresh list</string>
+    <string name="no_collection">No Collection Found</string>
+    <string name="no_collection_description">swipe to refresh list</string>
+    <string name="click_to_preview">Click To Preview Image</string>
+    <string name="search_holder">Search …</string>
+    <string name="title_activity_test_drawer">TestDrawerActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="settings_autowall">Auto Wallpaper</string>
+    <string name="settings_autowall_desc">auto changing wallpaper every time</string>
+    <string name="settings_interval">Set Interval</string>
+    <string name="settings_interval_desc">set interval for auto wallpaper</string>
+    <string name="settings_set">Set Wallpaper for</string>
+    <string name="settings_set_desc">you can choose for home, lock or both</string>
+    <string name="settings_background">Disable Blurred Background</string>
+    <string name="settings_background_desc">disable blurred background on detail to avoid lag</string>
+    <string name="settings_notification">Notification</string>
+    <string name="settings_notification_desc">you can disable or enable notification</string>
+    <string name="settings_theme">Change Theme</string>
+    <string name="settings_theme_desc">choose dark or light theme</string>
+    <string name="settings_privacy">Privacy Police</string>
+    <string name="settings_privacy_desc">privacy Police for this app</string>
+    <string name="settings_rate">Rate App</string>
+    <string name="settings_rate_desc">please give 5 stars for this app</string>
+    <string name="settings_more">More App</string>
+    <string name="settings_more_desc">find more apps like this</string>
+    <string name="settings_clear">Clear Cache</string>
+    <string name="settings_clear_desc">found %1$s cache</string>
+    <string name="settings_collection">Wallpaper Collection</string>
+    <string name="settings_collection_desc">view your auto wallpaper collection</string>
+    <string name="back_exit">Please click BACK again to exit</string>
+
+    <string name="denied_permission">"If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]"</string>
+    <!--    download page-->
+    <string name="open">OPEN</string>
+    <string name="unzip">UNZIP</string>
+    <string name="unzipping">UNZIPPING</string>
+
+    <string name="view">VIEW</string>
+    <string name="pause">PAUSE</string>
+    <string name="resume">RESUME</string>
+    <string name="download">DOWNLOAD</string>
+    <string name="retry">RETRY</string>
+    <string name="start">start</string>
+    <string name="delete">DELETE</string>
+    <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
+    <string name="failed">FAILED</string>
+    <string name="queued">QUEUED</string>
+    <!--    permission page-->
+    <string name="permission_title">Allow Permission</string>
+    <string name="permission_button">Allow</string>
+
+    <!--    on boarding-->
+    <string name="btn_next">NEXT</string>
+    <string name="btn_done">DONE</string>
+
+    <string-array name="boarding_title">
+        <item>Welcome</item>
+        <item>Huge Collection</item>
+        <item>Easy to Use</item>
+    </string-array>
+
+    <string-array name="boarding_description">
+        <item>Step into the ultimate companion for PSP enthusiasts, crafted to enhance your gaming experience.
+        </item>
+        <item>Explore an extensive library designed to cater to every gamer taste with ease.
+        </item>
+        <item>Effortlessly manage your favorite games and enjoy a seamless experience.
+        </item>
+    </string-array>
+
+    <integer-array name="boarding_image">
+        <item>@drawable/board_01</item>
+        <item>@drawable/board_02</item>
+        <item>@drawable/board_03</item>
+    </integer-array>
+
+    <string name="download_speed_bytes">%1$d B</string>
+    <string name="download_speed_kb">%1$s KB</string>
+    <string name="download_speed_mb">%1$s MB</string>
+</resources>

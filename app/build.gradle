@@ -1,0 +1,140 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id "kotlin-kapt"
+}
+
+android {
+    namespace 'com.pspgames.library'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.pspgames.library"
+        minSdk 24
+        targetSdk 35
+        versionCode 20
+        versionName "20.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation(project(":bee-native"))
+    implementation(project(":meow"))
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation 'com.google.firebase:firebase-analytics-ktx:21.2.0'
+    implementation 'androidx.work:work-runtime-ktx:2.7.1'
+    implementation 'com.github.amitshekhariitbhu:PRDownloader:1.0.1'
+    //carousel
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'me.relex:circleindicator:2.1.6'
+
+    //networking
+    implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
+    implementation 'com.github.kittinunf.fuel:fuel-android:2.3.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+
+    //navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:2.5.3"
+    implementation "androidx.navigation:navigation-ui-ktx:2.5.3"
+
+    implementation 'androidx.lifecycle:lifecycle-common:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-process:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    //image loader
+    implementation 'io.coil-kt:coil:2.2.2'
+    implementation 'io.coil-kt:coil-gif:2.2.2'
+    implementation 'io.coil-kt:coil-video:2.2.2'
+    implementation "com.github.bumptech.glide:glide:4.14.2"
+    implementation "com.squareup.okhttp3:okhttp:3.14.0"
+    implementation('com.github.bumptech.glide:okhttp3-integration:4.11.0') {
+        exclude group: 'glide-parent'
+    }
+
+    //blurring image
+    implementation 'io.github.hokofly:hoko-blur:1.5.0'
+
+    //tab layout
+    implementation 'com.ogaclejapan.smarttablayout:library:2.0.0@aar'
+    implementation 'com.ogaclejapan.smarttablayout:utils-v4:2.0.0@aar'
+
+    //optional card
+    implementation 'io.github.florent37:shapeofview:1.4.7'
+
+    //image cropper
+    implementation "com.vanniktech:android-image-cropper:4.6.0"
+
+    //sharedpref helper
+    implementation 'com.pixplicity.easyprefs:EasyPrefs:1.10.0'
+
+    //GIF DRAWABLE
+    implementation "app.redwarp.gif:android-drawable:0.8.1"
+
+    //rounded progress
+    implementation 'com.akexorcist:round-corner-progress-bar:2.1.2'
+
+    //database
+    implementation 'com.github.ali77gh:EasyDataAndroid:3.2.2'
+
+    //hashtag layout manager
+    implementation 'com.github.beloos:ChipsLayoutManager:0.3.7'
+
+    //THE MOST IMPORTANT LIBRARY IN THE WORLD
+    implementation 'com.google.android.gms:play-services-ads:23.6.0' // AdMob SDK
+    implementation 'com.facebook.android:audience-network-sdk:6.18.0'
+    implementation 'com.applovin:applovin-sdk:11.5.0'
+    implementation 'com.yandex.android:mobileads:5.5.0'
+    //implementation 'com.ironsource.sdk:mediationsdk:7.1.11.1'
+    implementation 'com.startapp:inapp-sdk:4.10.+'
+    implementation 'com.github.MFlisar:GDPRDialog:1.4.4'
+
+
+    //onesignal
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+
+    //permission
+    implementation 'io.github.ParkSangGwon:tedpermission-normal:3.2.3'
+
+    //guava
+    implementation 'com.google.guava:guava:31.1-android'
+
+    //restart app
+    implementation 'com.jakewharton:process-phoenix:2.1.2'
+    implementation "com.github.tonyofrancis.Fetch:fetch2:3.4.1"
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
+
+    implementation 'com.github.amitshekhariitbhu.Fast-Android-Networking:android-networking:1.0.4'
+    implementation libs.androidx.work.runtime
+    implementation libs.androidx.work.runtime
+}

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="30dp"
+    app:cardBackgroundColor="?attr/background_secondary"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/medium"
+            android:textSize="14sp"
+            android:textColor="?attr/text_primary"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:text="@string/rename_file_to" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:layout_marginHorizontal="20dp">
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="?attr/background_primary"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="30dp">
+                <EditText
+                    android:id="@+id/filename"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/search_holder"
+                    android:importantForAutofill="no"
+                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="18dp"
+                    android:imeOptions="actionDone"
+                    android:singleLine="true"
+                    android:lines="1"
+                    android:inputType="text"
+                    android:textAlignment="textStart"
+                    android:fontFamily="@font/regular"
+                    android:includeFontPadding="false"
+                    android:textSize="14sp"
+                    android:textCursorDrawable="@drawable/cursor_drawable"
+                    android:textColor="?attr/text_primary"
+                    android:textColorHint="?attr/text_secondary"
+                    android:background="@android:color/transparent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/extension"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:textSize="12sp"
+                android:fontFamily="@font/medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/white"
+                android:text=".JPG"
+                android:layout_marginEnd="10dp"/>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:orientation="horizontal">
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/cancel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="5dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/error"
+                android:background="@drawable/background_button"
+                android:textColor="@android:color/white"
+                android:text="Cancel"
+                tools:ignore="ButtonStyle" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/submit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:backgroundTint="@color/success"
+                android:background="@drawable/background_button"
+                android:textColor="@android:color/white"
+                android:text="Rename"
+                tools:ignore="ButtonStyle" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

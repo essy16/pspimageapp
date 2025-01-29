@@ -1,0 +1,56 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.CleanWallpaperApp" parent="Theme.MaterialComponents.NoActionBar"/>
+
+    <style name="DarkModeTheme" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="background_primary">@color/background_primary_dark</item>
+        <item name="background_secondary">@color/background_secondary_dark</item>
+        <item name="text_primary">@color/text_primary_dark</item>
+        <item name="text_secondary">@color/text_secondary_dark</item>
+        <item name="accent_color">@color/accent_color</item>
+        <item name="colorAccent">@color/accent_color</item>
+        <item name="android:statusBarColor">@color/background_primary_dark</item>
+    </style>
+
+    <style name="LightModeTheme" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="background_primary">@color/background_primary_light</item>
+        <item name="background_secondary">@color/background_secondary_light</item>
+        <item name="text_primary">@color/text_primary_light</item>
+        <item name="text_secondary">@color/text_secondary_light</item>
+        <item name="accent_color">@color/accent_color</item>
+        <item name="colorAccent">@color/accent_color</item>
+        <item name="android:statusBarColor">@color/background_primary_light</item>
+    </style>
+
+    <style name="ToolBarStyle" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">?attr/text_primary</item>
+        <item name="android:textColorSecondary">?attr/text_secondary</item>
+        <item name="actionMenuTextColor">?attr/text_primary</item>
+    </style>
+
+    <style name="AlertDialog" parent="Base.Theme.AppCompat.Dialog.Alert" />
+
+    <style name="PreviewTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <style name="Theme.CleanWallpaperApp.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.CleanWallpaperApp.AppBarOverlay"
+        parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.CleanWallpaperApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Theme.CleanWallpaperApp.FullScreen" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorAccent">?attr/accent_color</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+</resources>
