@@ -171,32 +171,23 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
     private fun createForegroundInfo(progress: String): ForegroundInfo {
         val channelId = "download_channel"
         val channelName = "Downloads"
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        // Create notification channel (for Android 8.0+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                setSound(null, null)
-                enableVibration(false)
-            }
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
+        // Build the notification
+        val notification: Notification = NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle("Downloading")
             .setContentText(progress)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-            .setProgress(100, 0, true)
-            .setSilent(true)
             .build()
 
+        // Return ForegroundInfo with appropriate type for Android 14+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ForegroundInfo(
                 1,
@@ -207,7 +198,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             ForegroundInfo(1, notification)
         }
     }
-
     private suspend fun performWork() {
         while (getPendingDownloads().isNotEmpty()) {
             modelDownload = getPendingDownload()
