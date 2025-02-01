@@ -1,5 +1,7 @@
 package com.pspgames.library.utils
 
+
+
 import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
@@ -17,17 +19,21 @@ import java.io.InputStream
 import java.util.zip.ZipException
 
 
+
 object UnzipUtils {
     fun extract(context: Context, zipFile: File, outputDirectory: File, callback: UnzipCallback) {
-        if(!outputDirectory.exists()){
+        if (!outputDirectory.exists()) {
             outputDirectory.mkdir()
         }
         val archiveFileUri = Uri.fromFile(zipFile)
         val inputStream = context.contentResolver.openInputStream(archiveFileUri)
         val bufferedInputStream = BufferedInputStream(inputStream)
 
+
+
         extractPasswordProtectedZipOrRegularZip(context, bufferedInputStream, outputDirectory.absolutePath, callback)
     }
+
 
 
     private fun extractPasswordProtectedZipOrRegularZip(
@@ -42,10 +48,15 @@ object UnzipUtils {
             zip4jExtractZipFile(context, tempFile, DocumentFile.fromFile(File(outputDirectory)), callback)
         }
     }
+
+
+
     fun getMimeType(string: String): String? {
         val extension = MimeTypeMap.getFileExtensionFromUrl(string)
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
     }
+
+
 
     private fun zip4jExtractZipFile(context: Context, tempFile: File, outputDirectory: DocumentFile?, callback: UnzipCallback) {
         val zipFile = ZipFile(tempFile)
@@ -56,32 +67,56 @@ object UnzipUtils {
                 val totalEntries = fileHeaders.size
                 var extractedEntries = 0
 
+
+
                 for (header in fileHeaders) {
                     val relativePath = header.fileName
                     val pathParts = relativePath.split("/")
                     var currentDirectory = outputDirectory
 
+
+
+// Create missing directories
                     for (part in pathParts.dropLast(1)) {
                         currentDirectory = currentDirectory?.findFile(part) ?: currentDirectory?.createDirectory(part)
                     }
 
+
+
+// Extract the file if it's not a directory
                     if (!header.isDirectory) {
-                        val mimeType = getMimeType(pathParts.last())
-                        val filename = if(pathParts.last().contains(".")){
-                            pathParts.last().split(".").first()
-                        } else {
-                            pathParts.last()
+                        val filename = pathParts.last()
+                        val mimeType = getMimeType(pathParts.last()) ?: "application/octet-stream"
+                        val extension = pathParts.last().substringAfterLast(".", "")
+
+
+
+// Handle specific MIME types
+                        val finalMimeType = when {
+                            extension.equals("iso", ignoreCase = true) -> "application/x-iso9660-image"
+                            extension.equals("zip", ignoreCase = true) -> "application/zip"
+                            else -> mimeType
                         }
-                        val outputFile = currentDirectory?.createFile(mimeType ?: "application/octet-stream", filename)
-                        logging(outputFile?.uri)
+
+
+
+                        val outputFile = currentDirectory?.createFile(finalMimeType, filename)
+                        logging("Extracting file: ${outputFile?.uri}")
+
+
+
                         val bufferedOutputStream =
                             BufferedOutputStream(outputFile?.uri?.let { context.contentResolver.openOutputStream(it) })
+
+
 
                         zipFile.getInputStream(header).use { inputStream ->
                             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                             var bytesRead: Int
                             var totalBytesRead = 0L
                             val fileSize = header.uncompressedSize
+
+
 
                             while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                                 bufferedOutputStream.write(buffer, 0, bytesRead)
@@ -95,7 +130,11 @@ object UnzipUtils {
                         }
                     }
 
+
+
                     extractedEntries++
+
+
 
                     val progress = (extractedEntries * 100 / totalEntries)
                     MainScope().launch(Dispatchers.Main) {
@@ -103,6 +142,9 @@ object UnzipUtils {
                     }
                 }
                 tempFile.delete()
+                logging("Temporary file deleted: ${tempFile.absolutePath}")
+
+
 
             } catch (e: ZipException) {
                 MainScope().launch(Dispatchers.Main) {
@@ -117,6 +159,7 @@ object UnzipUtils {
     }
 
 
+
     private suspend fun createTempFileFromInputStreamAsync(context: Context, inputStream: InputStream): File = withContext(Dispatchers.IO) {
         val tempFile = File.createTempFile("temp_", ".zip", context.cacheDir)
         FileOutputStream(tempFile).use { outputStream ->
@@ -129,11 +172,12 @@ object UnzipUtils {
         return@withContext tempFile
     }
 
+
+
     interface UnzipCallback {
         fun onStart()
         fun onComplete()
         fun onProgress(progress: Int)
         fun onError(e: Exception)
     }
-
 }

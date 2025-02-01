@@ -1,5 +1,6 @@
 package com.pspgames.library.downloader
 
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -21,7 +22,14 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.pspgames.library.*
+import com.pspgames.library.ads.AdsUtils
 import com.pspgames.library.database.DownloadTable
 import com.pspgames.library.enums.DownloadStatus
 import com.pspgames.library.interfaces.DownloadListener
@@ -33,6 +41,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 class DownloadWorker(context: Context, workerParams: WorkerParameters) :
@@ -49,6 +58,8 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         const val DOWNLOAD_PAUSED = "DOWNLOAD PAUSED"
         const val DOWNLOAD_CURRENT = "DOWNLOAD_CURRENT"
         const val DOWNLOAD_TOTAL = "DOWNLOAD_TOTAL"
+        private var mInterstitialAd: InterstitialAd? = null
+        private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
         const val DOWNLOAD_STATUS = "DOWNLOAD_STATUS"
         private var downloadListener: DownloadListener? = null
         private var modelDownload: ModelDownload = ModelDownload()
@@ -57,6 +68,8 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         private val paused = AtomicBoolean(false)
         private var currentDownloadPosition = 0L
         private var resumePosition = 0L
+        val workRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java).build()
+        val workId = workRequest.id
 
         private fun isRunning() = running.get()
         private fun isCanceling() = canceling.get()
@@ -65,19 +78,22 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         }
 
         fun start(context: Context, observer: Observer<List<WorkInfo?>?>) {
+            WorkManager.getInstance(context).enqueue(workRequest)
+
+
             if (!isRunning()) {
                 canceling.set(false)
                 removeObserver(context, observer)
                 val constraints = Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
-                val downloadRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java)
-                    .setConstraints(constraints)
-                    .build()
+//                val downloadRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java)
+//                    .setConstraints(constraints)
+//                    .build()
                 WorkManager.getInstance(context).enqueueUniqueWork(
                     Constants.workerName,
                     ExistingWorkPolicy.REPLACE,
-                    downloadRequest
+                    workRequest
                 )
                 addObserver(context, observer)
             }
@@ -86,6 +102,12 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         fun addObserver(context: Context, observer: Observer<List<WorkInfo?>?>) {
             WorkManager.getInstance(context)
                 .getWorkInfosForUniqueWorkLiveData(Constants.workerName)
+                .observeForever(observer)
+        }
+
+        fun observeWork(context: Context, workId: UUID, observer: Observer<WorkInfo>) {
+            WorkManager.getInstance(context)
+                .getWorkInfoByIdLiveData(workId)
                 .observeForever(observer)
         }
 
@@ -105,28 +127,38 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             start(context, observer)
         }
 
-        fun pause() {
-            paused.set(true)
+        fun pause(context: Context, workId: UUID) {
+            // Cancel the current work request
+            WorkManager.getInstance(context).cancelWorkById(workId)
+
+            // Save the current state (e.g., resumePosition) in a database or SharedPreferences
+            val resumePosition = currentDownloadPosition // Assuming this is tracked in your worker
+            saveResumePosition(context, workId, resumePosition)
+
+            // Update the UI or notify the listener
             modelDownload.status = DownloadStatus.PAUSED.name
             downloadListener?.onPause(modelDownload)
         }
 
-        fun resume(context: Context, observer: Observer<List<WorkInfo?>?>) {
-            if (modelDownload.downloaded > 0) {
-                resumePosition = modelDownload.downloaded
-            }
-            paused.set(false)
-            modelDownload.status = DownloadStatus.DOWNLOADING.name
-            downloadListener?.onResume(modelDownload)
-            val resumePosition = modelDownload.downloaded
+        private fun saveResumePosition(context: Context, workId: UUID, resumePosition: Long) {
+            // Save the resume position in SharedPreferences or a database
+            val sharedPrefs = context.getSharedPreferences("DownloadPrefs", Context.MODE_PRIVATE)
+            sharedPrefs.edit().putLong(workId.toString(), resumePosition).apply()
+        }
 
-            // Create new work request with resume data
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+        fun resume(context: Context, workId: UUID, observer: Observer<List<WorkInfo?>?>) {
+            // Retrieve the saved resume position
+            val resumePosition = getResumePosition(context, workId)
 
+            // Create input data with the resume position
             val inputData = Data.Builder()
                 .putLong("resume_position", resumePosition)
+                .putString("download_id", modelDownload.id) // Optional: Pass the download ID
+                .build()
+
+            // Create a new work request
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val downloadRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java)
@@ -134,15 +166,22 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                 .setInputData(inputData)
                 .build()
 
+            // Enqueue the new work request
             WorkManager.getInstance(context).enqueueUniqueWork(
-                Constants.workerName,
+                workId.toString(), // Use the Work ID as the unique work name
                 ExistingWorkPolicy.REPLACE,
                 downloadRequest
             )
 
+            // Add an observer to track the work request
             addObserver(context, observer)
         }
-    }
+
+        private fun getResumePosition(context: Context, workId: UUID): Long {
+            // Retrieve the resume position from SharedPreferences or a database
+            val sharedPrefs = context.getSharedPreferences("DownloadPrefs", Context.MODE_PRIVATE)
+            return sharedPrefs.getLong(workId.toString(), 0L)
+        }    }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         return@withContext try {
@@ -150,25 +189,15 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             val resumePosition = inputData.getLong("resume_position", 0L)
             currentDownloadPosition = resumePosition
 
-// Make sure the notification is being updated correctly in the download loop.
-            setForegroundAsync(createForegroundInfo("Downloading: $progress%"))
-
-            // Ensure we're using a foreground service
-            val foregroundInfo = createForegroundInfo("Starting download...")
-            setForeground(foregroundInfo)
-
+            // Perform the download
             performWork()
-            running.set(false)
             Result.success()
         } catch (error: Exception) {
-            updateProgress(if (isCanceling()) DownloadStatus.CANCELED else DownloadStatus.FAILED)
-            running.set(false)
-            delay(2000)
             Result.failure()
         }
     }
 
-    private fun createForegroundInfo(progress: String): ForegroundInfo {
+    fun createForegroundInfo(progress: String): ForegroundInfo {
         val channelId = "download_channel"
         val channelName = "Downloads"
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -198,6 +227,7 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             ForegroundInfo(1, notification)
         }
     }
+
     private suspend fun performWork() {
         while (getPendingDownloads().isNotEmpty()) {
             modelDownload = getPendingDownload()
@@ -223,7 +253,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
 
         try {
             val response = if (currentDownloadPosition > 0) {
-                // Add proper headers for range request
                 downloadServices.downloadFileWithRange(
                     modelDownload.url,
                     "bytes=$currentDownloadPosition-"
@@ -239,9 +268,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                         var downloaded = currentDownloadPosition
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                         var bytes = inputStream.read(buffer)
-
-                        // Define the progress here
-                        var progress: Int
 
                         while (bytes >= 0 && running.get()) {
                             if (paused.get()) {
@@ -264,8 +290,8 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                             downloaded += bytes
                             bytes = inputStream.read(buffer)
 
-                            // Update progress during the download
-                            progress = ((downloaded * 100) / total).toInt()
+                            // Update progress
+                            val progress = ((downloaded * 100) / total).toInt()
                             updateProgress(DownloadStatus.DOWNLOADING, progress, downloaded, total)
 
                             // Update notification periodically
@@ -277,6 +303,53 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                             currentDownloadPosition = 0L
                             resumePosition = 0L
                             updateProgress(DownloadStatus.COMPLETED, 100, downloaded, total)
+
+                            // Show ad on main thread after download completes
+                            Handler(Looper.getMainLooper()).post {
+                                (downloadListener as? Context)?.let { context ->
+                                    if (context is Activity && !context.isFinishing) {
+                                        App.log("Valid Activity context found. Attempting to show ad.")
+
+                                        val adRequest = AdRequest.Builder().build()
+
+                                        InterstitialAd.load(context, AD_UNIT_ID, adRequest,
+                                            object : InterstitialAdLoadCallback() {
+                                                override fun onAdFailedToLoad(adError: LoadAdError) {
+                                                    App.log("Ad failed to load: ${adError.message}")
+                                                    mInterstitialAd = null
+                                                    downloadListener?.onComplete(modelDownload)
+                                                }
+
+                                                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                                                    App.log("Ad loaded successfully")
+                                                    mInterstitialAd = interstitialAd
+
+                                                    // Set full screen callback
+                                                    mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                                                        override fun onAdDismissedFullScreenContent() {
+                                                            App.log("Ad dismissed")
+                                                            downloadListener?.onComplete(modelDownload)
+                                                        }
+
+                                                        override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                                                            App.log("Ad failed to show")
+                                                            downloadListener?.onComplete(modelDownload)
+                                                        }
+                                                    }
+
+                                                    // Show the ad
+                                                    mInterstitialAd?.show(context)
+                                                }
+                                            })
+                                    } else {
+                                        App.log("Invalid Activity context. Cannot show ad.")
+                                        downloadListener?.onComplete(modelDownload)
+                                    }
+                                } ?: run {
+                                    App.log("No context available. Cannot show ad.")
+                                    downloadListener?.onComplete(modelDownload)
+                                }
+                            }
                         }
                     }
                 }
@@ -287,7 +360,6 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             throw e
         }
     }
-
     private suspend fun updateProgress(
         status: DownloadStatus,
         progress: Int = 0,

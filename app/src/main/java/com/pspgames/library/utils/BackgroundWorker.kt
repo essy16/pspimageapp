@@ -9,6 +9,7 @@ import androidx.work.WorkerParameters
 import com.pspgames.library.App
 import com.pspgames.library.enums.WallpaperTarget
 import com.pixplicity.easyprefs.library.Prefs
+import com.pspgames.library.downloader.DownloadWorker
 import java.io.File
 import kotlin.random.Random
 
@@ -22,6 +23,7 @@ class BackgroundWorker(
             try {
                 App.log("Run work manager")
                 runWallpaperChanger()
+                DownloadWorker
                 Result.success()
             } catch (e: Exception) {
                 App.log("exception in doWork ${e.message}")

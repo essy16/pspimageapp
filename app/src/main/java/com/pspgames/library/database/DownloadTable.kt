@@ -14,6 +14,8 @@ class DownloadTable (context: Context) : EasyTable<ModelDownload>(context, Model
         }
     }
 
+
+
     fun getPendingDownloads() = filter { it.status == DownloadStatus.ENQUEUE.name }
 
     fun getPendingDownload() = first { it.status == DownloadStatus.ENQUEUE.name }
