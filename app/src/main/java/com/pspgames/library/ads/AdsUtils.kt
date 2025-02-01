@@ -1,7 +1,10 @@
 package com.pspgames.library.ads
 
 import android.app.Activity
+import android.content.Context
+import android.media.tv.AdRequest
 import android.view.ViewGroup
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.pspgames.library.R
 import com.pspgames.library.dialog.BaseDialog
 import com.pspgames.library.enums.AdsProvider
@@ -50,6 +53,7 @@ object AdsUtils {
             }
         }
     }
+
 
     fun showReward(activity: Activity, callback: () -> Unit){
         if(PrefsUtils.getAdmob().provider == AdsProvider.DISABLE.name){

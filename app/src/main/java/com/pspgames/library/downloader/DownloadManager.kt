@@ -2,8 +2,10 @@ package com.pspgames.library.downloader
 
 import android.content.Context
 import androidx.lifecycle.Observer
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.pspgames.library.database.DownloadTable
 import com.pspgames.library.enums.DownloadStatus
 import com.pspgames.library.interfaces.DownloadListener
@@ -16,6 +18,8 @@ class DownloadManager(private val context: Context) {
     private val downloadTable: DownloadTable = DownloadTable.getRepo(context)
     private val workManager: WorkManager = WorkManager.getInstance(context)
     private lateinit var observer: Observer<List<WorkInfo?>?>
+    val workRequest = OneTimeWorkRequest.Builder(DownloadWorker::class.java).build()
+    val workId = workRequest.id
 
     fun setListener(downloadListener: DownloadListener){
         DownloadWorker.setListener(downloadListener)
@@ -40,13 +44,13 @@ class DownloadManager(private val context: Context) {
     fun onResume(){
         getObserver().let {
             CoroutineScope(Dispatchers.Main).launch {
-                DownloadWorker.resume(context, it)
+                DownloadWorker.resume(context, workId,observer)
             }        }
     }
 
     fun onPause(){
         getObserver().let {
-            DownloadWorker.pause()
+            DownloadWorker.pause(context, workId)
         }
     }
 
