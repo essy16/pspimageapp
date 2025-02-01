@@ -54,6 +54,10 @@ dependencies {
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'me.relex:circleindicator:2.1.6'
 
+    //hilt
+    implementation 'androidx.hilt:hilt-work:1.0.0'
+
+
     //networking
     implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
     implementation 'com.github.kittinunf.fuel:fuel-android:2.3.1'

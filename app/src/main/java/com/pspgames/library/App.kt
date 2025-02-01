@@ -7,6 +7,9 @@ import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import android.util.Log
 import android.widget.Toast
+import androidx.work.Configuration
+import androidx.work.WorkManager
+import androidx.work.WorkerFactory
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.GifDecoder
@@ -23,7 +26,9 @@ import com.pixplicity.easyprefs.library.Prefs
 import kotlinx.coroutines.Dispatchers
 
 
-class App : Application(), ImageLoaderFactory {
+class App : Application(), ImageLoaderFactory{
+//    lateinit var workerFactory: WorkerFactory
+
     companion object {
         lateinit var instance: App
         lateinit var favouriteDatabase: FavouriteTable
@@ -39,6 +44,11 @@ class App : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+
+        WorkManager.initialize(
+            this,
+            Configuration.Builder().build()
+        )
         instance = this
         AndroidNetworking.initialize(applicationContext)
         FirebaseApp.initializeApp(this)
@@ -60,6 +70,12 @@ class App : Application(), ImageLoaderFactory {
 
 
     }
+
+//    override fun getWorkManagerConfiguration(): Configuration {
+//        return Configuration.Builder()
+//            .setWorkerFactory(workerFactory)
+//            .build()
+//    }
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
