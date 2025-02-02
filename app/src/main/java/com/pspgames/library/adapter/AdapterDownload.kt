@@ -3,6 +3,7 @@ package com.pspgames.library.adapter
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.media.MediaScannerConnection
@@ -176,7 +177,30 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                         binding.buttonCard.setOnClickListener {
                             openImageFile(context, item)
                         }
+                        // Add this dialog to prompt user to open file
+                        AlertDialog.Builder(context)
+                            .setTitle("Download Complete")
+                            .setMessage("Would you like to open this file now?")
+                            .setPositiveButton("Open") { dialog, _ ->
+                                openImageFile(context, item)
+                                dialog.dismiss()
+                            }
+                            .setNegativeButton("Later") { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .show()
                     }
+                }
+            }
+            DownloadStatus.ADCOMPLETED.name ->{
+                binding.buttonRemove.show()
+                binding.buttonText.setText(R.string.cancel)
+                binding.buttonRemoveText.setText(R.string.delete)
+                binding.buttonCard.setOnClickListener{
+                    cancel(item)
+                }
+                binding.buttonRemove.setOnClickListener{
+                    removeWithDialog(context,item)
                 }
             }
             DownloadStatus.FAILED.name -> {
