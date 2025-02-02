@@ -331,19 +331,19 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                                                 override fun onAdFailedToLoad(adError: LoadAdError) {
                                                     App.log("Ad failed to load: ${adError.message}")
                                                     mInterstitialAd = null
-                                                    downloadListener?.onComplete(modelDownload)
                                                 }
 
                                                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                                                     App.log("Ad loaded successfully")
                                                     mInterstitialAd = interstitialAd
+                                                    downloadListener?.onComplete(modelDownload)
+
 
                                                     // Set full screen callback
                                                     mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
                                                         override fun onAdDismissedFullScreenContent() {
                                                             App.log("Ad dismissed")
                                                             downloadListener?.onComplete(modelDownload)
-                                                            modelDownload.status = DownloadStatus.ADCOMPLETED.name
                                                         }
 
                                                         override fun onAdFailedToShowFullScreenContent(p0: AdError) {
@@ -354,6 +354,8 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
 
                                                     // Show the ad
                                                     mInterstitialAd?.show(context)
+                                                    modelDownload.status = DownloadStatus.ADCOMPLETED.name
+
                                                 }
                                             })
                                     } else {
