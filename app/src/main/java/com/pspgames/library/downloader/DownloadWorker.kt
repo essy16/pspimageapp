@@ -26,6 +26,7 @@ import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.pspgames.library.*
@@ -36,7 +37,9 @@ import com.pspgames.library.interfaces.DownloadListener
 import com.pspgames.library.model.ModelDownload
 import com.pspgames.library.utils.Constants
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -76,6 +79,17 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
         fun setListener(downloadListener: DownloadListener) {
             this.downloadListener = downloadListener
         }
+
+        fun getAdvertisingId(context: Context) {
+
+            GlobalScope.launch {
+                val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+                Log.d("text", adInfo.id ?: "unknown")
+            }
+        }
+
+
+
 
         fun start(context: Context, observer: Observer<List<WorkInfo?>?>) {
             WorkManager.getInstance(context).enqueue(workRequest)
@@ -329,6 +343,7 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
                                                         override fun onAdDismissedFullScreenContent() {
                                                             App.log("Ad dismissed")
                                                             downloadListener?.onComplete(modelDownload)
+                                                            modelDownload.status = DownloadStatus.ADCOMPLETED.name
                                                         }
 
                                                         override fun onAdFailedToShowFullScreenContent(p0: AdError) {

@@ -27,6 +27,7 @@ data class ModelDownload(
             DownloadStatus.FAILED.name -> DownloadStatus.FAILED
             DownloadStatus.CANCELED.name -> DownloadStatus.CANCELED
             DownloadStatus.PAUSED.name -> DownloadStatus.PAUSED
+            DownloadStatus.ADCOMPLETED.name -> DownloadStatus.ADCOMPLETED
             else -> DownloadStatus.ENQUEUE
         }
     }

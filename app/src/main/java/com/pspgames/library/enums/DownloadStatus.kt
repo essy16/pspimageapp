@@ -10,5 +10,6 @@ enum class DownloadStatus {
     UNZIPPED,
     PAUSED,
     UNZIPPING,
-    RESUMED
+    RESUMED,
+    ADCOMPLETED
 }

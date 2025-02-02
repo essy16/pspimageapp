@@ -161,7 +161,7 @@ object UnzipUtils {
 
 
     private suspend fun createTempFileFromInputStreamAsync(context: Context, inputStream: InputStream): File = withContext(Dispatchers.IO) {
-        val tempFile = File.createTempFile("temp_", ".zip", context.cacheDir)
+        val tempFile = File.createTempFile("temp_", "", context.cacheDir)
         FileOutputStream(tempFile).use { outputStream ->
             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
             var count: Int
