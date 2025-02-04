@@ -1,6 +1,7 @@
 package com.pspgames.library.adapter
 
 
+import ChunkedDownloader
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -33,11 +34,17 @@ import com.pspgames.library.utils.show
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.pspgames.library.ads.AdsUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.io.File
 
-class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<ModelDownload,
-        ItemDownloadBinding>
-    () {
+class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<ModelDownload, ItemDownloadBinding>() {
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
+
     override fun viewHolder(parent: ViewGroup): BaseViewHolder<ItemDownloadBinding> {
         return BaseViewHolder(parent.toBinding())
     }
@@ -55,11 +62,13 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
             .placeholder(R.drawable.placeholder)
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(binding.thumbnail)
+
         binding.options.setOnClickListener {
             openOptionMenu(context, binding, item, position)
         }
         binding.buttonRemove.setOnClickListener { removeWithDialog(context, item) }
         resetLayout()
+
         when (item.status) {
             DownloadStatus.UNZIPPED.name -> {
                 progressComplete()
@@ -87,42 +96,7 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                     AdsUtils.showInterstitial(activityContext) {
                         // This code runs after the ad is shown or dismissed
                         if (item.filename.endsWith(".zip", true)) {
-                            val zipFile = File(item.directory, item.filename)
-                            val extractPath = File(Utils.getDownloadPath(context))
-                            UnzipUtils.extract(context, zipFile, extractPath, object : UnzipUtils.UnzipCallback {
-                                override fun onStart() {
-                                    NotificationUtils.sendUnzipProgress("Unzipping ${item.title}", context, 5022)
-                                    binding.progress.progress = 0f
-                                    binding.buttonText.setText(R.string.unzipping)
-                                }
-
-                                override fun onComplete() {
-                                    NotificationUtils.sendUnzipSuccess("Unzipping ${item.title} successfully", context, 421)
-                                    if (zipFile.exists()) {
-                                        zipFile.delete()
-                                    }
-                                    item.status = DownloadStatus.UNZIPPED.name
-                                    item.directory = extractPath.absolutePath
-                                    downloadTable.update(item)
-                                    scanFile(extractPath)
-                                    recyclerView.post {
-                                        notifyItemChanged(position)
-                                    }
-                                }
-
-                                override fun onProgress(progress: Int) {
-                                    binding.progress.progress = progress.toFloat()
-                                }
-
-                                override fun onError(e: Exception) {
-                                    NotificationUtils.sendUnzipSuccess("Unzipping ${item.title} failed", context, 421)
-                                    item.status = DownloadStatus.FAILED.name
-                                    downloadTable.update(item)
-                                    recyclerView.post {
-                                        notifyItemChanged(position)
-                                    }
-                                }
-                            })
+                            downloadZipFile(item, position) // Call downloadZipFile here
                         } else {
                             scanFile(item.createFile())
                             binding.buttonText.setText(R.string.open)
@@ -131,46 +105,10 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                             }
                         }
                     }
-                } ?:
-                run {
+                } ?: run {
                     // If we couldn't get activity context, proceed without showing the ad
                     if (item.filename.endsWith(".zip", true)) {
-                        val zipFile = File(item.directory, item.filename)
-                        val extractPath = File(Utils.getDownloadPath(context))
-                        UnzipUtils.extract(context, zipFile, extractPath, object : UnzipUtils.UnzipCallback {
-                            override fun onStart() {
-                                NotificationUtils.sendUnzipProgress("Unzipping ${item.title}", context, 5022)
-                                binding.progress.progress = 0f
-                                binding.buttonText.setText(R.string.unzipping)
-                            }
-
-                            override fun onComplete() {
-                                NotificationUtils.sendUnzipSuccess("Unzipping ${item.title} successfully", context, 421)
-                                if (zipFile.exists()) {
-                                    zipFile.delete()
-                                }
-                                item.status = DownloadStatus.UNZIPPED.name
-                                item.directory = extractPath.absolutePath
-                                downloadTable.update(item)
-                                scanFile(extractPath)
-                                recyclerView.post {
-                                    notifyItemChanged(position)
-                                }
-                            }
-
-                            override fun onProgress(progress: Int) {
-                                binding.progress.progress = progress.toFloat()
-                            }
-
-                            override fun onError(e: Exception) {
-                                NotificationUtils.sendUnzipSuccess("Unzipping ${item.title} failed", context, 421)
-                                item.status = DownloadStatus.FAILED.name
-                                downloadTable.update(item)
-                                recyclerView.post {
-                                    notifyItemChanged(position)
-                                }
-                            }
-                        })
+                        downloadZipFile(item, position) // Call downloadZipFile here
                     } else {
                         scanFile(item.createFile())
                         binding.buttonText.setText(R.string.open)
@@ -192,17 +130,19 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                     }
                 }
             }
-            DownloadStatus.ADCOMPLETED.name ->{
+
+            DownloadStatus.ADCOMPLETED.name -> {
                 binding.buttonRemove.show()
                 binding.buttonText.setText(R.string.cancel)
                 binding.buttonRemoveText.setText(R.string.delete)
-                binding.buttonCard.setOnClickListener{
+                binding.buttonCard.setOnClickListener {
                     cancel(item)
                 }
-                binding.buttonRemove.setOnClickListener{
-                    removeWithDialog(context,item)
+                binding.buttonRemove.setOnClickListener {
+                    removeWithDialog(context, item)
                 }
             }
+
             DownloadStatus.FAILED.name -> {
                 binding.buttonRemove.show()
                 binding.buttonText.setText(R.string.retry)
@@ -227,10 +167,9 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                 binding.buttonCard.setOnClickListener {
                     cancel(item)
                 }
-                binding.buttonRemove.setOnClickListener{
+                binding.buttonRemove.setOnClickListener {
                     pause(item)
                     item.status = DownloadStatus.PAUSED.name
-
                 }
             }
 
@@ -240,7 +179,7 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                 binding.buttonCard.setOnClickListener {
                     cancel(item)
                 }
-                binding.buttonRemove.setOnClickListener{
+                binding.buttonRemove.setOnClickListener {
                     resume(item)
                 }
             }
@@ -252,30 +191,154 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                 binding.buttonCard.setOnClickListener(null)
             }
         }
-
     }
 
+    private fun downloadZipFile(item: ModelDownload, position: Int) {
+        coroutineScope.launch {
+            val zipFile = File(item.directory, item.filename)
+            val notificationId = item.id.toInt()
+
+            // Update status to downloading
+            item.status = DownloadStatus.DOWNLOADING.name
+            downloadTable.update(item)
+            notifyItemChanged(position)
+
+            try {
+                // Initial notification
+                NotificationUtils.sendStatusNotification(
+                    "Starting download: ${item.filename}",
+                    context,
+                    notificationId
+                )
+
+                // Use UnzipUtils.downloadAndUnzip for downloading and unzipping
+                val success = UnzipUtils.downloadAndUnzip(
+                    context = context,
+                    url = item.url,
+                    outputDirectory = File(Utils.getDownloadPath(context)),
+                    callback = object : UnzipUtils.UnzipCallback {
+                        override fun onStart() {
+                            // Update status to downloading
+                            item.status = DownloadStatus.DOWNLOADING.name
+                            downloadTable.update(item)
+                            notifyItemChanged(position)
+                        }
+
+                        override fun onComplete() {
+                            // Update status and UI
+                            item.status = DownloadStatus.UNZIPPED.name
+                            item.directory = Utils.getDownloadPath(context)
+                            item.progress = 100
+                            downloadTable.update(item)
+                            notifyItemChanged(position)
+
+                            // Show success notification
+                            NotificationUtils.sendUnzipSuccess(
+                                "${item.filename} downloaded and extracted successfully",
+                                context,
+                                notificationId
+                            )
+
+                            // Clean up zip file
+                            zipFile.delete()
+
+                            // Scan media files
+                            scanFile(File(item.directory, item.filename))
+                        }
+
+                        override fun onProgress(progress: Int) {
+                            // Update download progress in UI and model
+                            item.progress = progress
+                            item.downloaded = (progress.toFloat() / 100 * item.total).toLong()
+                            downloadTable.update(item)
+
+                            // Update UI
+                            binding.progress.progress = progress.toFloat()
+                            binding.percent.text = "$progress%"
+                            binding.size.text = "${Utils.getHumanReadableString(item.downloaded)} / ${Utils.getHumanReadableString(item.total)}"
+
+                            // Update notification every 5%
+                            if (progress % 5 == 0) {
+                                NotificationUtils.sendStatusNotification(
+                                    "Downloading ${item.filename}: $progress%",
+                                    context,
+                                    notificationId
+                                )
+                            }
+                        }
+
+                        override fun onError(e: Exception) {
+                            // Update status and UI for error
+                            item.status = DownloadStatus.FAILED.name
+                            downloadTable.update(item)
+                            notifyItemChanged(position)
+
+                            // Show error notification
+                            NotificationUtils.sendStatusNotification(
+                                "Error downloading ${item.filename}: ${e.message}",
+                                context,
+                                notificationId
+                            )
+
+                            // Clean up any partial files
+                            zipFile.delete()
+                        }
+                    },
+                    chunkSize = 5 * 1024 * 1024, // 5MB chunks
+                    maxConcurrentDownloads = 3
+                )
+
+                if (!success) {
+                    // Handle download failure
+                    item.status = DownloadStatus.FAILED.name
+                    downloadTable.update(item)
+                    notifyItemChanged(position)
+
+                    NotificationUtils.sendStatusNotification(
+                        "Failed to download ${item.filename}",
+                        context,
+                        notificationId
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                // Update status and UI for error
+                item.status = DownloadStatus.FAILED.name
+                downloadTable.update(item)
+                notifyItemChanged(position)
+
+                // Show error notification
+                NotificationUtils.sendStatusNotification(
+                    "Error downloading ${item.filename}: ${e.message}",
+                    context,
+                    notificationId
+                )
+
+                // Clean up any partial files
+                zipFile.delete()
+            }
+        }
+    }
 
 
     private fun openOptionMenu(context: Context, binding: ItemDownloadBinding, item: ModelDownload, position: Int) {
         val popupMenu = PopupMenu(context, binding.options)
         popupMenu.inflate(R.menu.download_menu)
-        popupMenu.setOnMenuItemClickListener(object : PopupMenu.OnMenuItemClickListener {
-            override fun onMenuItemClick(menuItem: MenuItem?): Boolean {
-                when (menuItem!!.itemId) {
-                    R.id.rename -> {
-                        DialogRename(context, item) {
-                            item.filename = it
-                            downloadTable.update(item)
-                            notifyItemChanged(position)
-                            scanFile(item.createFile())
-                        }.show()
-                        return true
-                    }
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.rename -> {
+                    DialogRename(context, item) {
+                        item.filename = it
+                        downloadTable.update(item)
+                        notifyItemChanged(position)
+                        scanFile(item.createFile())
+                    }.show()
+                    true
                 }
-                return false
+                else -> false
             }
-        })
+        }
         popupMenu.show()
     }
 
@@ -286,12 +349,9 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
         binding.progress.show()
     }
 
-
     private fun progressComplete() {
         binding.progress.progressColor = ContextCompat.getColor(context, R.color.success)
-        //binding.size.hide()
     }
-
 
     private fun showLoading() {
         binding.progressLoading.show()
@@ -304,6 +364,7 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
             null
         ) { _, _ -> }
     }
+
 
     private fun openImageFile(context: Context, item: ModelDownload) {
         val file = File(item.directory, item.filename)
@@ -390,6 +451,10 @@ class AdapterDownload(private val downloadTable: DownloadTable) : BaseRVAdapter<
                 }
             }
         }
+    }
+
+    fun cancelAllDownloads() {
+        coroutineScope.cancel()
     }
 
     fun update(downloadData: ModelDownload) {
