@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.webkit.MimeTypeMap
 import coil.imageLoader
@@ -159,11 +160,14 @@ object Utils {
     }
 
     fun getRealUrl(string: String): String {
+
         return if(string.contains("http")){
             string
         } else {
             Config.SERVER_URL + "/" + string
+
         }
+
     }
 
     fun getBytesFromFile(file: File): ByteArray {

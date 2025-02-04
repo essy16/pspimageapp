@@ -12,4 +12,5 @@ enum class DownloadStatus {
     UNZIPPING,
     RESUMED,
     ADCOMPLETED
+
 }
