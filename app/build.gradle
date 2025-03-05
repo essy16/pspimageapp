@@ -25,11 +25,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     buildFeatures {
         viewBinding true
@@ -49,7 +49,7 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation 'com.google.firebase:firebase-analytics-ktx:21.2.0'
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
-    implementation 'com.github.amitshekhariitbhu:PRDownloader:1.0.1'
+    implementation 'com.github.amitshekhariitbhu:PRDownloader:1.0.2'
     //carousel
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'me.relex:circleindicator:2.1.6'
