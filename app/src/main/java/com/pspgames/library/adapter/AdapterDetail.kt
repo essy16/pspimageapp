@@ -1,5 +1,6 @@
 package com.pspgames.library.adapter
 
+import DialogDownload
 import android.app.Activity
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -18,7 +19,6 @@ import com.pspgames.library.base.BaseViewHolder
 import com.pspgames.library.base.toBinding
 import com.pspgames.library.databinding.ItemDetailBinding
 import com.pspgames.library.databinding.ItemNativeDetailBinding
-import com.pspgames.library.dialog.DialogDownload
 import com.pspgames.library.dialog.DialogHashtag
 import com.pspgames.library.model.ModelLatest
 import com.pspgames.library.network.MainViewModel

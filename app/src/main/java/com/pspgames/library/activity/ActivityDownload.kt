@@ -128,4 +128,8 @@ class ActivityDownload : BaseActivity<ActivityDownloadBinding>(), DownloadListen
         adapterDownload.update(modelDownload)
         downloadTable.update(modelDownload)
     }
+
+    override fun onProgressUpdate(download: ModelDownload) {
+
+    }
 }
