@@ -1,11 +1,12 @@
-package com.pspgames.library.dialog
-
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
 import com.pspgames.library.R
 import com.pspgames.library.activity.ActivityDownload
 import com.pspgames.library.ads.AdsUtils
+import com.pspgames.library.dialog.BaseDialog
+import com.pspgames.library.dialog.DialogExist
+import com.pspgames.library.dialog.DialogSelectDownload
 import com.pspgames.library.downloader.DownloadManager
 import com.pspgames.library.model.ModelDownload
 import com.pspgames.library.model.ModelLatest
@@ -42,10 +43,10 @@ class DialogDownload(context: Context, item: ModelLatest.Data) : BaseDialog(cont
                 }
             }
         }
-        if(item.isConsole()){
+        if (item.isConsole()) {
             val items = item.iso.replace("\r", "")
             val isoArray = items.split("\n")
-            if(isoArray.isNotEmpty()){
+            if (isoArray.isNotEmpty()) {
                 setNegativeButton("GAME FILE") {
                     dismiss()
                     DialogSelectDownload(context, item, isoArray).show()
@@ -57,16 +58,30 @@ class DialogDownload(context: Context, item: ModelLatest.Data) : BaseDialog(cont
         } else {
             val items = item.zipFile1.replace("\r", "")
             val zipArray = items.split("\n")
-            if(zipArray.isNotEmpty()){
+            if (zipArray.isNotEmpty()) {
                 setNegativeButton("ZIP") {
                     dismiss()
-                    DialogSelectDownload(context, item, zipArray).show()
+                    selectServerForZipDownload(context, item, zipArray)
                 }
             } else {
                 Toast.makeText(context, "Server Not Found", Toast.LENGTH_SHORT).show()
             }
         }
+    }
 
+    private fun selectServerForZipDownload(context: Context, item: ModelLatest.Data, zipArray: List<String>) {
+        val serverSelectionManager = ServerSelectionManager(context, item, zipArray)
+
+        serverSelectionManager.downloadFile(
+            onSuccess = { modelDownload ->
+                dismiss()
+                DialogExist(context, modelDownload).show()
+            },
+            onFailure = { message ->
+                dismiss()
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     private fun createModel(item: ModelLatest.Data, isZip: Boolean = false): ModelDownload {
@@ -95,6 +110,4 @@ class DialogDownload(context: Context, item: ModelLatest.Data) : BaseDialog(cont
             filename = filename
         )
     }
-
-
 }

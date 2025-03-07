@@ -306,8 +306,12 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
 
                             // Update progress
                             val progress = ((downloaded * 100) / total).toInt()
-                            updateProgress(DownloadStatus.DOWNLOADING, progress, downloaded, total)
-
+                            broadcastProgress(
+                                DownloadStatus.DOWNLOADING,
+                                ((downloaded * 100) / total).toInt(),
+                                downloaded,
+                                total
+                            )
                             // Update notification periodically
                             setForegroundAsync(createForegroundInfo("Downloaded: $progress%"))
                         }
@@ -377,6 +381,32 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) :
             throw e
         }
     }
+
+    private suspend fun broadcastProgress(
+        status: DownloadStatus,
+        progress: Int = 0,
+        downloaded: Long = 0,
+        total: Long = 0
+    ) {
+        // Create output data
+        val data = createOutputData(status, progress, downloaded, total)
+
+        // Set WorkManager progress
+        setProgress(data)
+
+        // Optional: Use a local broadcast or event bus to ensure UI gets update
+        withContext(Dispatchers.Main) {
+            downloadListener?.onProgressUpdate(
+                modelDownload.copy(
+                    status = status.name,
+                    progress = progress,
+                    downloaded = downloaded,
+                    total = total
+                )
+            )
+        }
+    }
+
     private suspend fun updateProgress(
         status: DownloadStatus,
         progress: Int = 0,
